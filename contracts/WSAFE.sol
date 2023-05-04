@@ -55,6 +55,7 @@ contract WSAFE {
         _;
     }
 
+    // Requires a safe wallet threshold of one
     function deposit(address receiver) public onlyOwner noModules noGuard noFallback {
         require(paused(), "Deposit: SAFE token is transferable");
         require(receiver != address(0), "Deposit: no receiver set");
