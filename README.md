@@ -11,7 +11,8 @@ The SAFE token itself is not transferable, however the tokens are all in safe mu
 
 Before depositing make sure that no other tokens are in the safe wallet, since a deposit results in locking the safe wallet in the wrapper contract. If the wallet did have other tokens then the safe wallet can be unlocked. Before transferability is enabled the safe wallet can be returned by burning the amount of WSAFE tokens in the safe wallet. After transferability is enabled the SAFE tokens can be returned by anyone, the wrapper contract will withdraw the SAFE tokens before returning the safe wallet. 
 
-Note: the wrapper contract reads the balanceOf the safe wallet. This only returns the claimed tokens, so vested and unclaimed tokens can't be wrapped.  
+Note 1: the wrapper contract reads the balanceOf the safe wallet. This only returns the claimed tokens, so vested and unclaimed tokens can't be wrapped.  
+Note 2: this POC requires that the safe wallet has a threshold of one for the deposit.
 
 ## Test
 Test uses the ganache mainnet fork option. Use two terminals:
