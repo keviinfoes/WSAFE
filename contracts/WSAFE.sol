@@ -71,7 +71,7 @@ contract WSAFE {
     function withdraw(uint256 amount) public {
         require(!paused(), "Withdraw: SAFE token is not transferable");
         require(IERC20(SAFE).balanceOf(address(this)) >= amount, "Withdraw: no SAFE tokens available");
-        require(balanceOf[msg.sender] >= amount, "Withdraw: not enough WSAFE tokens");
+        require(balanceOf[msg.sender] >= amount, "Withdraw: insufficient WSAFE balance");
         balanceOf[msg.sender] -= amount;
         totalSupply -= amount;
         IERC20(SAFE).transfer(msg.sender, amount);
@@ -80,10 +80,9 @@ contract WSAFE {
 
     function returnSafe(address safe) public {
         address receiver = withdrawer[safe];
-        claimSafe(safe);
+        uint256 balance = minted[safe];
         if(paused()){
             require(msg.sender == receiver, "return Safe: not the receiver");
-            uint256 balance = IERC20(SAFE).balanceOf(safe);
             uint256 amount = balanceOf[msg.sender];
             require(amount >= balance, "return Safe: insufficient WSAFE balance");
             withdrawer[safe] = address(0);
@@ -93,25 +92,11 @@ contract WSAFE {
             emit Withdrawal(msg.sender, balance);
         } else {
             withdrawer[safe] = address(0);
-            uint256 balance = IERC20(SAFE).balanceOf(safe);
             bytes memory data = abi.encodeWithSignature("transfer(address,uint256)", address(this), balance);
             execute(safe, SAFE, data);
         }
         bytes memory swap = abi.encodeWithSignature("swapOwner(address,address,address)", address(0x1), address(this), receiver);
         execute(safe, safe, swap);  
-    }
-
-    function claimSafe(address safe) public {
-        uint256 balance = IERC20(SAFE).balanceOf(safe);
-        address receiver = withdrawer[safe];
-        require(receiver != address(0), "return Safe: no receiver set");
-        if(balance > minted[safe]){
-            uint256 amount = balance - minted[safe];
-            minted[receiver] += amount;
-            balanceOf[receiver] += amount;
-            totalSupply += amount;
-            emit Deposit(receiver, amount); 
-        }   
     }
 
     function approve(address sender, uint amount) public returns (bool) {
