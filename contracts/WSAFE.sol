@@ -10,13 +10,12 @@ contract WSAFE {
     uint8  public decimals = 18;
     address public SAFE = 0x5aFE3855358E112B5647B952709E6165e1c1eEEe;
 
-    uint256 public totalSupply;
-
     event  Approval(address indexed from, address indexed to, uint amount);
     event  Transfer(address indexed from, address indexed to, uint amount);
-    event  Deposit(address indexed to, uint amount);
+    event  Deposit(address indexed from, address indexed to, uint amount);
     event  Withdrawal(address indexed to, uint amount);
 
+    uint256 public totalSupply;
     mapping (address => uint) public  balanceOf;
     mapping (address => mapping (address => uint)) public  allowance;
     mapping (address => address) public withdrawer;
@@ -55,7 +54,7 @@ contract WSAFE {
         _;
     }
 
-    // Requires a safe wallet threshold of one
+    // Deposit requires a safe wallet threshold of one before calling
     function deposit(address receiver) public onlyOwner noModules noGuard noFallback {
         require(paused(), "Deposit: SAFE token is transferable");
         require(receiver != address(0), "Deposit: no receiver set");
@@ -66,7 +65,8 @@ contract WSAFE {
         minted[msg.sender] += balance;
         balanceOf[receiver] += balance;
         totalSupply += balance;
-        emit Deposit(receiver, balance);
+        vaults.push(msg.sender);
+        emit Deposit(msg.sender, receiver, balance);
     }
 
     function withdraw(uint256 amount) public {
@@ -100,28 +100,6 @@ contract WSAFE {
         execute(safe, safe, swap);  
     }
 
-    function approve(address sender, uint amount) public returns (bool) {
-        allowance[msg.sender][sender] = amount;
-        emit Approval(msg.sender, sender, amount);
-        return true;
-    }
-
-    function transfer(address receiver, uint amount) public returns (bool) {
-        return transferFrom(msg.sender, receiver, amount);
-    }
-
-    function transferFrom(address sender, address receiver, uint amount) public returns (bool) {
-        require(balanceOf[sender] >= amount);
-        if (sender != msg.sender && allowance[sender][msg.sender] != uint(-1)) {
-            require(allowance[sender][msg.sender] >= amount);
-            allowance[sender][msg.sender] -= amount;
-        }
-        balanceOf[sender] -= amount;
-        balanceOf[receiver] += amount;
-        emit Transfer(sender, receiver, amount);
-        return true;
-    }
-
     function execute(address safe, address to, bytes memory data) internal {
         IGnosisSafe(safe).execTransaction(
             to,
@@ -145,4 +123,25 @@ contract WSAFE {
         locked = IERC20(SAFE).paused();
     }
 
+    function approve(address sender, uint amount) public returns (bool) {
+        allowance[msg.sender][sender] = amount;
+        emit Approval(msg.sender, sender, amount);
+        return true;
+    }
+
+    function transfer(address receiver, uint amount) public returns (bool) {
+        return transferFrom(msg.sender, receiver, amount);
+    }
+
+    function transferFrom(address sender, address receiver, uint amount) public returns (bool) {
+        require(balanceOf[sender] >= amount);
+        if (sender != msg.sender && allowance[sender][msg.sender] != uint(-1)) {
+            require(allowance[sender][msg.sender] >= amount);
+            allowance[sender][msg.sender] -= amount;
+        }
+        balanceOf[sender] -= amount;
+        balanceOf[receiver] += amount;
+        emit Transfer(sender, receiver, amount);
+        return true;
+    }
 }

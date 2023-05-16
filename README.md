@@ -11,15 +11,15 @@ The SAFE token itself is not transferable, however the tokens are all in safe mu
 
 Before depositing make sure that no other tokens are in the safe wallet, since a deposit results in locking the safe wallet in the wrapper contract. If the wallet did have other tokens then the safe wallet can be unlocked. Before transferability is enabled the safe wallet can be returned by burning the amount of WSAFE tokens in the safe wallet. After transferability is enabled the SAFE tokens can be returned by anyone, the wrapper contract will withdraw the SAFE tokens before returning the safe wallet. 
 
-Note 1: the wrapper contract reads the balanceOf the safe wallet. This only returns the claimed tokens, so vested and unclaimed tokens can't be wrapped.  
-Note 2: this POC requires that the safe wallet has a threshold of one for the deposit.
+- Note 1: the wrapper contract reads the balanceOf the safe wallet. This only returns the claimed tokens, meaning vested and unclaimed tokens can't be wrapped.  
+- Note 2: this POC requires that the safe wallet has a threshold of one for the deposit. Use a batched transaction to safely lower the threshold to one in a single transaction with the deposit call. 
 
 ## Test
 Test uses the ganache mainnet fork option. Use two terminals:
 
 ```
 //Terminal 1
-ganache-cli --gasPrice=90000000000 --fork {url} --unlock {safe wallet} {owner of safe wallet}
+ganache-cli --gasPrice=90000000000 --fork {url} --unlock {safe wallet} {owner of safe wallet} {safe token owner}
 
 //Terminal 2
 cd {path to repository}
@@ -29,3 +29,4 @@ truffle test
 For the test cases I used a random SAFE token holder with a single owner and threshold of one: 
 - safe wallet: 0x07b91cb28B4fCB4b1109459D1c76bF436a58De70 
 - owner safe wallet: 0xf5453Ac1b5A978024F0469ea36Be25887EA812b4
+- safe token contract owner: 0x8CF60B289f8d31F737049B590b5E4285Ff0Bd1D1
